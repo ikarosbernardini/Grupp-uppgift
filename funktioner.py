@@ -1,6 +1,6 @@
 import random
 import os
-#hej ikaros
+#hej ikaros # hej markus 
 
 class Visdom:
 
