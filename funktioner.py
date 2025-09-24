@@ -1,6 +1,6 @@
 import random
 import os
-
+#hej ikaros
 
 class Visdom:
 
