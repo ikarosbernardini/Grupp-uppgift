@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import time
 
 def menu():
@@ -38,3 +39,7 @@ if__name__=="__main__":
     show_menu()"""
 
 menu()
+=======
+print("Hello world")
+
+>>>>>>> 0e339badc14a8df95d19abca90deac1940638358
