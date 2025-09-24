@@ -14,31 +14,33 @@ def menu():
         choice = input("")
 
         if choice == "1":
-            loading()
+            loading("Loading...")
             #funktioner.
         elif choice == "2":
             #funktioner.radera()
-            loading()
+            loading("Loading...")
         elif choice == "3":
             #funktioner.
+            loading("Loading...")
         #elif choice == "4":
             #funktioner.
+            loading("Loading...")
         #elif choice == "5":
             #funktioner.
+            loading("Loading...")
         #elif choice == "6":
-            funktioner.slumpa()
+            #funktioner.slumpa()
+            loading("Loading...")
         else:
-            print("Felaktigt svar")
-            time.sleep(3)
+            print("Wrong answer")
+            time.sleep(1)
 
-"""def loading(text):
+def loading(text):
     print(text, end="", flush=True)
     for i in range(3):
         time.sleep(0.5)
-        print()"""
+        print()
 
 
-#if__name__=="__main__":
-#    show_menu()
-
-menu()
+if __name__ == "__main__":
+    menu()
