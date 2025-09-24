@@ -1,10 +1,10 @@
 import random
 import os
-#hej ikaros # hej markus 
+#hej ikaros # hej markus # hej arvid
 
 class Visdom:
 
-    def __init__(self, fil= str= 'visdom.txt'  ):  # visdom.txt är påhittat namn, vi ska egentligen lägga in den skapade filen med visdoms orden vi har
+    def __init__ (self, fil= str= 'visdom.txt'  ):  # visdom.txt är påhittat namn, vi ska egentligen lägga in den skapade filen med visdoms orden vi har
         self.fil= fil
 
 
