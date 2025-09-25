@@ -8,44 +8,50 @@
 #   Läs upp alla sparade
 #   Slumpa fram visdomsord från databas
 
+import sqlite3
 import random
-import os
+
 
 
 class Visdom:
 
-    def __init__(self, fil: str = 'visdom.txt'):  # visdom.txt är påhittat namn, vi ska egentligen lägga in den skapade filen med visdoms orden vi har
-        self.fil = fil
+    def init(self, db_path: str='advice.db') -> None:
+        self.db_path=db_path
+        self._skapa_tabell()
 
 
-    def visa_visdom(self) -> str: #visar alla visdomsord i filen
+    def show_visdom(self):
+        conn=sqlite3.connect(self.db_path)
+        c=conn.cursor()
+        c.execute('Select advice_text from advice')
+    for row in c.fetchall():
+        print(row[0]) #va bara in siffran 0 som exempel, ni kan ändra
+        conn.close()
 
-        with open (self.fil, 'r', encoding='utf-8') as f:
-            rader= f.readlines()
-            for rad in rader:
-                print(rad.strip())
 
-    
-    def slumpa(self) ->str: # slumpar fram ord från filen
-        with open (self.fil, 'r', encoding='utf-8') as f:
-            rader= [rad.strip() for rad in f if rad.strip()]
+    def random(self):
+        conn=sqlite3.connect(self.db_path)
+        c.conn.cursor()
+        c.execute('select advice_text from advice')
+        rader= [rad[0] for rad in c.fetchall()]
+        conn.close()
+        if rader:
             print(random.choice(rader))
+        else:
+            print('No result')
 
+    def delete(self, text):
+        conn=sqlite3.connect(self.db_path)
+        c=conn.cursor()
+        c.execute('Delete from advice ' , (text,))
+        conn.commit()
+        conn.close()
+        print(f'We have now deleted: {text}')
 
-    
-    def radera(self, text) ->str: #raderar ord från filen
-        with open (self.fil, 'r', encoding='utf-8') as f:
-            rader= [rad.strip() for rad in f  if rad.strip()]
-        rader.remove(text)
-        with open(self.fil, 'w', encoding='uft-8') as f:
-            for rad in rader:
-                f.write(rad +'\n')
-        print(f'Vi har nu raderat: {text}')
-
-    
-    def add(self, text): #lägger till ord i filen
-        with open(self.fil, 'a', encoding='utf-8') as f:
-            f.write(text + '\n')
-        print(f'Vi har nu lagt till: {text}')
-
-        
+    def add(self, text):
+        conn=sqlite3.connect(self.db_path)
+        c=conn.cursor()
+        c.execute('insert into advice', (text))
+        conn.commit()
+        conn.close()
+        print(f'We have now added: {text}')
