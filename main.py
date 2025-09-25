@@ -1,4 +1,5 @@
 import time
+from adviceAPI import AdviceApp
 #import funktioner
 
 def menu():
@@ -43,4 +44,11 @@ def loading(text):
 
 
 if __name__ == "__main__":
-    menu()
+    API_advice = AdviceApp()
+    advice_id, advice_text = API_advice.get_advice()
+    save = input("Do you want to save this advice? (yes/no): ").strip().lower()
+    if save == "yes":
+        #OBS går ej att spara än eftersom funktionen inte är utvecklad.
+        API_advice.save_advice(advice_id, advice_text)
+    else:
+        print("Advice was not saved.")
