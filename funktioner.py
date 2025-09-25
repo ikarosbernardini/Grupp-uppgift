@@ -1,11 +1,21 @@
+#TO-DO: Dubbelkolla att dessa funktioner är korrekta, funkar och om fler behövs.
+#Funktioner
+#   Hämta visdomsord
+#   Radera
+#   Spara i databas?
+#       J/N?
+#   Söka
+#   Läs upp alla sparade
+#   Slumpa fram visdomsord från databas
+
 import random
 import os
-#hej ikaros # hej markus # hej arvid
+
 
 class Visdom:
 
-    def __init__ (self, fil= str= 'visdom.txt'  ):  # visdom.txt är påhittat namn, vi ska egentligen lägga in den skapade filen med visdoms orden vi har
-        self.fil= fil
+    def __init__(self, fil: str = 'visdom.txt'):  # visdom.txt är påhittat namn, vi ska egentligen lägga in den skapade filen med visdoms orden vi har
+        self.fil = fil
 
 
     def visa_visdom(self) -> str: #visar alla visdomsord i filen
