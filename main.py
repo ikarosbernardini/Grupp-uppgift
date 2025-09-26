@@ -1,39 +1,37 @@
 import time
 from adviceAPI import AdviceApp
-#import funktioner
-
 def menu():
     while True:
         print("\n=== Menu ===")
-        print("1. Get words of wisdom")
-        print("2. Delete")
-        print("3. Save in a txt-file?")
-        print("4. Search")
-        print("5. Read all saved")
-        print("6. Randomize words of wisdom from a file")
+        print("1. Recive new words of advice from the wise API")
+        print("2. Delete advice from database")
+        print("3. Print all saved words of advice")
+        print("4. Search for specific words of advice")
+        print("6. Randomize words of advice from a file")
+
+  #              print("3. Save in a txt-file?")
+
 
         choice = input("")
 
         if choice == "1":
-            loading("Loading...")
-            #funktioner.
+            API_advice.get_advice()
         elif choice == "2":
-            #funktioner.radera()
-            loading("Loading...")
+            API_advice.delete()     
         elif choice == "3":
+            API_advice.show_all()
+            """
             #funktioner.
-            loading("Loading...")
         #elif choice == "4":
             #funktioner.
-            loading("Loading...")
         #elif choice == "5":
             #funktioner.
-            loading("Loading...")
         #elif choice == "6":
             #funktioner.slumpa()
-            loading("Loading...")
+            """
         else:
-            print("Wrong answer")
+            print("Invalid choice, please try again.")
+            return 
             time.sleep(1)
 
 def loading(text):
@@ -45,10 +43,4 @@ def loading(text):
 
 if __name__ == "__main__":
     API_advice = AdviceApp()
-    advice_id, advice_text = API_advice.get_advice()
-    save = input("Do you want to save this advice? (yes/no): ").strip().lower()
-    if save == "yes":
-        #OBS går ej att spara än eftersom funktionen inte är utvecklad.
-        API_advice.save_advice(advice_id, advice_text)
-    else:
-        print("Advice was not saved.")
+    menu()

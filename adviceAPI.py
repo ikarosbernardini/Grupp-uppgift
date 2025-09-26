@@ -18,12 +18,15 @@ import requests
 class AdviceApp:
     def __init__(self, db_path="advice.db"):
         self.db_path = db_path
-        self.api_url = 'https://api.adviceslip.com/advice'
+        self.api_url = "https://api.adviceslip.com/advice"
         self.init_db()
 
-    # Initierar databas och tabell om de inte finns
+     
     def init_db(self):
-        """Creates the database and the advice table if they do not exist."""
+        """Initierar databas och tabell om de inte finns.
+
+        Funktion:
+            Använder sqlite3 för att skapa en databas och tabell."""
         conn = sqlite3.connect("advice.db")
         cursor = conn.cursor()
         cursor.execute("""
@@ -35,19 +38,30 @@ class AdviceApp:
         """)
         conn.commit()
         conn.close()
-
-    #Hämtar visdomsord från API och returnerar dem
+    
     def get_advice(self):
+        """Hämtar visdomsord från API och returnerar dem.
+        
+        Funktion:
+            Använder requests för att göra ett GET-anrop till API:et."""
         response = requests.get(self.api_url)
         response.raise_for_status()  # Raise an error for bad responses
         data = response.json()
         advice_id = data['slip']['id']
         advice_text = data['slip']['advice']
         print(f"Advice: {advice_text}")
-        return advice_id, advice_text
+        print("Do you want to save this advice? (y/n)")
+        user_input = input().strip().lower()
+        if user_input == 'y': 
+            self.save_advice(advice_id, advice_text)
+            print("Advice has been saved.")
+        return #advice_id, advice_text
     
-    # Sparar visdomsord i databasen om det inte redan finns
     def save_advice(self, advice_id, advice_text):
+        """Sparar visdomsord i databasen om det inte redan finns.
+
+        Funktion:
+            Använder INSERT OR IGNORE för att undvika dubbletter baserat på advice_id."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         date_added = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -60,7 +74,7 @@ class AdviceApp:
         print("Advice has been saved to the database if it was not already present.")
     
     
-    def add_manual(self, advice_text: str):
+    def add_manually(self, advice_text: str):
         """
         Lägger till ett visdomsord manuellt i databasen.
 
@@ -68,7 +82,7 @@ class AdviceApp:
             Kontrollerar att texten inte är tom, sparar den med aktuell tid.
         """
         if not advice_text or not advice_text.strip():
-            print('Du måste skriva något!')
+            print("You must write something to add advice.")
             return
 
         conn = sqlite3.connect(self.db_path)
@@ -98,8 +112,9 @@ class AdviceApp:
         conn.close()
 
         if rows:
+            #print("All the wise advice:")
             for row in rows:
-                print(f'[{row[0]}] {row[1]}')
+                print(f"Advice: {row[1]}")
 
         else:
             print("You have nothing saved yet")

@@ -1,7 +1,7 @@
 #TO-DO: Dubbelkolla type hinting 
 #TO-DO: Kommentera koden
 #TO-DO: Implementera "with" vid databasanslutning
-
+"""
 
 import requests
 import sqlite3
@@ -53,3 +53,4 @@ print("All the wise advice:")
 for row in cursor.fetchall():
     print(row[0], row[2])  # Skriv endast ut advice_text
 conn.close()
+"""
