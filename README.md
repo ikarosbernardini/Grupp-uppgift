@@ -7,7 +7,20 @@ läsa, söka och hantera dessa i en lokal SQLite-databas.
 
 -------------------------------------------------------
 
-## Funktioner :
+## Instruktioner 
+1. Klona repot
+ skriv - "git clone https://github.com/ikarosbernardini/Grupp-uppgift" i din terminal.
+ skriv sedan - "cd Grupp-uppgift"
+
+ Skriptet använder externa moduler som requests. Installera dem med pip:
+ skriv - "pip install requests"
+
+ sen kan när du är i rätt mapp så kör du en "python main.py alternativt : python3 main.py" beroende på om du är på Windows eller Linux/Mac 
+
+
+-------------------------------------------------------
+
+## Funktioner 
 
 -  Hämta visdomsord från ett externt API
 -  Spara visdomsord i en databas (med kontroll för duplicering)
