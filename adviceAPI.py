@@ -112,28 +112,45 @@ class AdviceApp:
         conn.close()
 
         if rows:
-            #print("All the wise advice:")
+            print("All the saved wise advice:")
             for row in rows:
-                print(f"Advice: {row[1]}")
+                print(f"\t{row[1]}")
 
         else:
             print("You have nothing saved yet")
 
-
-    def delete(self, advice_id: int):
+    def delete_advice(self):
         """
-        Raderar ett visdomsord från databasen baserat på dess ID.
+        Frågar användaren efter text och raderar motsvarande visdomsord.
         Funktion:
-        Tar bort raden från databasen och bekräftar borttagningen.
+        Tar bort raden från databasen om den finns, annars meddelar användaren.
         """
+        print("Type the advice you want to delete:")
+        advice_text = input().strip()
 
         conn=sqlite3.connect(self.db_path)
         cursor=conn.cursor()
-        cursor.execute("DELETE FROM advice WHERE advice_id= ?", (advice_id,))
-        conn.commit()
-        conn.close()
-        print(f'Advice id: {advice_id} is now deleted')
+        cursor.execute("SELECT advice_id FROM advice WHERE advice_text = ?", (advice_text,))
+        row=cursor.fetchone()
 
+        if row:
+            advice_id=row[0]
+            self.delete(advice_id)
+        else:
+            print(f'Could not find "{advice_text}" in the database.')
+
+# def delete(self, advice_id: int):
+#     """
+#     Raderar ett visdomsord från databasen baserat på dess ID.
+#     Funktion:
+#     Tar bort raden från databasen och bekräftar borttagningen.
+#     """
+#     conn=sqlite3.connect(self.db_path)
+#     cursor=conn.cursor()
+#     cursor.execute("DELETE FROM advice WHERE advice_id= ?", (advice_id,))
+#     conn.commit()
+#     conn.close()
+#     print(f'Advice id: {advice_id} is now deleted')
 
     def random_from_db(self):
         """
@@ -155,29 +172,25 @@ class AdviceApp:
         else:
             print("There are nothing saved in db")
 
-    
-    def search(self, keyword: str):
-            """
-            Söker efter visdomsord som innehåller ett specifikt nyckelord.
-            Funktion:
-             Visar alla visdomsord som innehåller sökordet.
-            Meddelar om inget resultat hittas.
-            """
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT advice_id, advice_text FROM advice WHERE advice_text LIKE ?",
-                ('%' + keyword + '%',)
-            )
-            rows = cursor.fetchall()
-            conn.close()
+    def search_for_advice(self, keyword: str):
+        """
+        Söker efter visdomsord som innehåller ett specifikt nyckelord.
+        Funktion:
+         Visar alla visdomsord som innehåller sökordet.
+        Meddelar om inget resultat hittas.
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT advice_id, advice_text FROM advice WHERE advice_text LIKE ?",
+            ('%' + keyword + '%',)
+        )
+        rows = cursor.fetchall()
+        conn.close()
 
-            if rows:
-                for row in rows:
-                    print(f'{row[0]}: {row[1]}')
-            else:
-                print(f'"{keyword}" could not be found')
-
-
-
-
+        if rows:
+            print(f'Found the following advice containing "{keyword}":')
+            for row in rows:
+                print(f'\t {row[1]}')
+        else:
+            print(f'Advices containing "{keyword}" could not be found.')
