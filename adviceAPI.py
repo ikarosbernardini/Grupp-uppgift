@@ -10,7 +10,7 @@
 
 import sqlite3
 import random
-import datetime
+from datetime import datetime
 import requests
 
 
@@ -73,7 +73,7 @@ class AdviceApp:
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        date_added = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        date_added = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute(
             "INSERT INTO advice (advice_text, date_added) VALUES (?, ?)",
             (advice_text.strip(), date_added)

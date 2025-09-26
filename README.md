@@ -17,7 +17,6 @@ läsa, söka och hantera dessa i en lokal SQLite-databas.
 
  sen kan när du är i rätt mapp så kör du en "python main.py alternativt : python3 main.py" beroende på om du är på Windows eller Linux/Mac 
 
-
 -------------------------------------------------------
 
 ## Funktioner 
