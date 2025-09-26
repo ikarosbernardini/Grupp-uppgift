@@ -10,7 +10,7 @@
 
 import sqlite3
 import random
-from datetime import datetime
+import datetime
 import requests
 
 
@@ -50,7 +50,7 @@ class AdviceApp:
     def save_advice(self, advice_id, advice_text):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        date_added = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        date_added = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute('''
         INSERT OR IGNORE INTO advice (advice_id, advice_text, date_added)
         VALUES (?, ?, ?)
@@ -59,45 +59,110 @@ class AdviceApp:
         conn.close()
         print("Advice has been saved to the database if it was not already present.")
     
-    # ISABELLA testa att utveckla följande funktioner om du vill.
-"""
-    # Visar alla sparade visdomsord
-    def list_saved_advice(self):
-        pass
-
-    def show_visdom(self):
-        conn=sqlite3.connect(self.db_path)
-        c=conn.cursor()
-        c.execute('Select advice_text from advice')
-    for row in c.fetchall():
-        print(row[0]) #va bara in siffran 0 som exempel, ni kan ändra
-        conn.close()
-
-
-    def random(self):
-        conn=sqlite3.connect(self.db_path)
-        c.conn.cursor()
-        c.execute('select advice_text from advice')
-        rader= [rad[0] for rad in c.fetchall()]
-        conn.close()
-        if rader:
-            print(random.choice(rader))
-        else:
-            print('No result')
-
-    def delete(self, text):
-        conn=sqlite3.connect(self.db_path)
-        c=conn.cursor()
-        c.execute('Delete from advice ' , (text,))
-        conn.commit()
-        conn.close()
-        print(f'We have now deleted: {text}')
-
-    def add(self, text):
-        conn=sqlite3.connect(self.db_path)
-        c=conn.cursor()
-        c.execute('insert into advice', (text))
-        conn.commit()
-        conn.close()
-        print(f'We have now added: {text}')
+    
+    def add_manual(self, advice_text: str):
         """
+        Lägger till ett visdomsord manuellt i databasen.
+
+        Funktion:
+            Kontrollerar att texten inte är tom, sparar den med aktuell tid.
+        """
+        if not advice_text or not advice_text.strip():
+            print('Du måste skriva något!')
+            return
+
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        date_added = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute(
+            "INSERT INTO advice (advice_text, date_added) VALUES (?, ?)",
+            (advice_text.strip(), date_added)
+        )
+        conn.commit()
+        conn.close()
+        print(f'You have now added: {advice_text}')
+
+    def show_all(self):
+        """
+        Visar alla sparade visdomsord från databasen.
+
+        Funktion:
+             Hämtar och skriver ut alla visdomsord med tillhörande ID.
+                Meddelar om databasen är tom.
+        """
+
+        conn=sqlite3.connect(self.db_path)
+        cursor=conn.cursor()
+        cursor.execute("SELECT advice_id, advice_text FROM advice")
+        rows= cursor.fetchall()
+        conn.close()
+
+        if rows:
+            for row in rows:
+                print(f'[{row[0]}] {row[1]}')
+
+        else:
+            print("You have nothing saved yet")
+
+
+    def delete(self, advice_id: int):
+        """
+        Raderar ett visdomsord från databasen baserat på dess ID.
+        Funktion:
+        Tar bort raden från databasen och bekräftar borttagningen.
+        """
+
+        conn=sqlite3.connect(self.db_path)
+        cursor=conn.cursor()
+        cursor.execute("DELETE FROM advice WHERE advice_id= ?", (advice_id,))
+        conn.commit()
+        conn.close()
+        print(f'Advice id: {advice_id} is now deleted')
+
+
+    def random_from_db(self):
+        """
+        Visar ett slumpmässigt visdomsord från databasen.
+        Funktion:
+        Hämtar alla visdomsord och väljer ett slumpmässigt.
+        Meddelar om databasen är tom.
+        """
+
+        conn=sqlite3.connect(self.db_path)
+        cursor=conn.cursor()
+        cursor.execute("SELECT advice_id, advice_text FROM advice")
+        rows=cursor.fetchall()
+        conn.close()
+
+        if rows:
+            random_row=random.choice(rows)
+            print(f'Random choice: {random_row[1]}')
+        else:
+            print("There are nothing saved in db")
+
+    
+    def search(self, keyword: str):
+            """
+            Söker efter visdomsord som innehåller ett specifikt nyckelord.
+            Funktion:
+             Visar alla visdomsord som innehåller sökordet.
+            Meddelar om inget resultat hittas.
+            """
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT advice_id, advice_text FROM advice WHERE advice_text LIKE ?",
+                ('%' + keyword + '%',)
+            )
+            rows = cursor.fetchall()
+            conn.close()
+
+            if rows:
+                for row in rows:
+                    print(f'{row[0]}: {row[1]}')
+            else:
+                print(f'"{keyword}" could not be found')
+
+
+
+
