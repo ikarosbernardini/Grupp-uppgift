@@ -1,13 +1,3 @@
-#TO-DO: Dubbelkolla att dessa funktioner är korrekta, funkar och om fler behövs.
-#Funktioner
-#   Hämta visdomsord
-#   Radera
-#   Spara i databas?
-#       J/N?
-#   Söka
-#   Läs upp alla sparade
-#   Slumpa fram visdomsord från databas
-
 import sqlite3
 import random
 from datetime import datetime
@@ -17,21 +7,26 @@ import requests
 
 class AdviceApp:
     def __init__(self, db_path="advice.db"):
+        """Initierar AdviceApp med databasväg och API URL.
+        Funktion:
+            Skapar en SQLite-databas och tabell om de inte finns."""
+        
         self.db_path = db_path
         self.api_url = "https://api.adviceslip.com/advice"
         self.init_db()
-
      
     def init_db(self):
         """Initierar databas och tabell om de inte finns.
 
         Funktion:
             Använder sqlite3 för att skapa en databas och tabell."""
-        conn = sqlite3.connect("advice.db")
+        
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS advice (
-            advice_id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            advice_id INTEGER UNIQUE,
             advice_text TEXT NOT NULL,
             date_added TEXT NOT NULL
         )
@@ -44,8 +39,9 @@ class AdviceApp:
         
         Funktion:
             Använder requests för att göra ett GET-anrop till API:et."""
+        
         response = requests.get(self.api_url)
-        response.raise_for_status()  # Raise an error for bad responses
+        response.raise_for_status()  # Skickar ett errormeddelande i fall anropet misslyckas
         data = response.json()
         advice_id = data['slip']['id']
         advice_text = data['slip']['advice']
@@ -53,9 +49,9 @@ class AdviceApp:
         print("Do you want to save this advice? (y/n)")
         user_input = input().strip().lower()
         if user_input == 'y': 
-            self.save_advice(advice_id, advice_text)
-            print("Advice has been saved.")
-        return #advice_id, advice_text
+            row_id = self.save_advice(advice_id, advice_text)
+            print(f"Advice has been saved as entry #{row_id} in the database.")
+        return 
     
     def save_advice(self, advice_id, advice_text):
         """Sparar visdomsord i databasen om det inte redan finns.
@@ -70,11 +66,14 @@ class AdviceApp:
         VALUES (?, ?, ?)
         ''', (advice_id, advice_text, date_added))
         conn.commit()
+
+        cursor.execute('SELECT id FROM advice WHERE advice_id = ?', (advice_id,))
+        row_id = cursor.fetchone()[0]  # Get the row ID of the inserted or existing advice
         conn.close()
-        print("Advice has been saved to the database if it was not already present.")
-    
-    
-    def add_manually(self, advice_text: str):
+        #print("Advice has been saved to the database if it was not already present.")
+        return row_id
+
+    def add_advice_manually(self, advice_text: str):
         """
         Lägger till ett visdomsord manuellt i databasen.
 
@@ -89,14 +88,14 @@ class AdviceApp:
         cursor = conn.cursor()
         date_added = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute(
-            "INSERT INTO advice (advice_text, date_added) VALUES (?, ?)",
-            (advice_text.strip(), date_added)
+            "INSERT INTO advice (advice_id, advice_text, date_added) VALUES (?, ?, ?)",
+            (None, advice_text.strip(), date_added)
         )
         conn.commit()
         conn.close()
-        print(f'You have now added: {advice_text}')
+        print(f'You have now added: {advice_text.strip()}')
 
-    def show_all(self):
+    def show_all_advice(self):
         """
         Visar alla sparade visdomsord från databasen.
 
@@ -107,70 +106,68 @@ class AdviceApp:
 
         conn=sqlite3.connect(self.db_path)
         cursor=conn.cursor()
-        cursor.execute("SELECT advice_id, advice_text FROM advice")
+        cursor.execute("SELECT id, advice_text, date_added FROM advice ORDER BY id ASC")
         rows= cursor.fetchall()
         conn.close()
 
         if rows:
             print("All the saved wise advice:")
             for row in rows:
-                print(f"\t{row[1]}")
+                print(f"\t{row[0]}. Added on {row[2]}: {row[1]}")
 
         else:
             print("You have nothing saved yet")
 
     def delete_advice(self):
         """
-        Frågar användaren efter text och raderar motsvarande visdomsord.
-        Funktion:
-        Tar bort raden från databasen om den finns, annars meddelar användaren.
+        Visar alla råd först och låter användaren välja id för att radera.
+        Felhantering vid ogiltig inmatning.
         """
-        print("Type the advice you want to delete:")
-        advice_text = input().strip()
 
-        conn=sqlite3.connect(self.db_path)
-        cursor=conn.cursor()
-        cursor.execute("SELECT advice_id FROM advice WHERE advice_text = ?", (advice_text,))
-        row=cursor.fetchone()
+        # Skriv ut alla sparade råd med respektive ID
+        valid_ids = self.show_all_advice()
+        if not valid_ids:
+            return  # Ingen att radera
 
-        if row:
-            advice_id=row[0]
-            self.delete(advice_id)
-        else:
-            print(f'Could not find "{advice_text}" in the database.')
+        while True:
+            try:
+                advice_id = int(input("\nType the ID of the advice you want to delete: ").strip())
+            except ValueError:
+                print(" Please enter a valid number.")
+                continue
 
-# def delete(self, advice_id: int):
-#     """
-#     Raderar ett visdomsord från databasen baserat på dess ID.
-#     Funktion:
-#     Tar bort raden från databasen och bekräftar borttagningen.
-#     """
-#     conn=sqlite3.connect(self.db_path)
-#     cursor=conn.cursor()
-#     cursor.execute("DELETE FROM advice WHERE advice_id= ?", (advice_id,))
-#     conn.commit()
-#     conn.close()
-#     print(f'Advice id: {advice_id} is now deleted')
+            if advice_id not in valid_ids:
+                print(" ID not found. Please enter a valid ID from the list.")
+                continue
 
-    def random_from_db(self):
+            # Ta bort rådet
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM advice WHERE id = ?", (advice_id,))
+            conn.commit()
+            conn.close()
+            print(f" Advice with ID {advice_id} has been deleted.")
+            break
+
+    def random_advice_from_db(self):
         """
         Visar ett slumpmässigt visdomsord från databasen.
         Funktion:
-        Hämtar alla visdomsord och väljer ett slumpmässigt.
+        Hämtar alla visdomsord (API och manuella) och väljer ett slumpmässigt.
         Meddelar om databasen är tom.
         """
 
-        conn=sqlite3.connect(self.db_path)
-        cursor=conn.cursor()
-        cursor.execute("SELECT advice_id, advice_text FROM advice")
-        rows=cursor.fetchall()
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, advice_text FROM advice")
+        rows = cursor.fetchall()
         conn.close()
 
         if rows:
-            random_row=random.choice(rows)
-            print(f'Random choice: {random_row[1]}')
+            random_row = random.choice(rows)
+            print(f'Random advice (ID: {random_row[0]}): {random_row[1]}')
         else:
-            print("There are nothing saved in db")
+            print("There are nothing saved in the database.")
 
     def search_for_advice(self, keyword: str):
         """
