@@ -1,6 +1,6 @@
 from time import sleep
 from adviceAPI import AdviceApp
-def menu():
+def menu() -> None:
     while True:
         print("\n=== Menu ===")
         print("1. Get new advice from API")
@@ -11,7 +11,7 @@ def menu():
         print("6. Delete an advice")
         print("7. Exit")
 
-        choice = int(input("Please enter your choice (1-7): "))
+        choice : int = int(input("Please enter your choice (1-7): "))
 
         try:
 
@@ -22,7 +22,7 @@ def menu():
             elif choice == 3:
                 API_advice.show_all_advice()
             elif choice == 4:
-                keyword = input("Enter a keyword to search for: ").strip()
+                keyword : str = input("Enter a keyword to search for: ").strip()
                 API_advice.search_for_advice(keyword)
             elif choice == 5:
                 API_advice.random_advice_from_db()
