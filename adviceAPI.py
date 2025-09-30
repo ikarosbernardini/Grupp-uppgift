@@ -34,12 +34,13 @@ class AdviceApp:
         conn.commit()
         conn.close()
     
-    def get_advice(self) -> tuple[int, str] | None: #reuterar i tuple, ID=int och text=str eller None om man inte sparar något.
+    def get_advice(self) -> tuple[int, str] | None: 
         """Hämtar visdomsord från API och returnerar dem.
         
         Funktion:
-            Använder requests för att göra ett GET-anrop till API:et."""
-        
+            Använder requests för att göra ett GET-anrop till API:et.
+            Returnerar i tuple, (ID=int och text=str) eller None om man inte sparar något."""
+
         response = requests.get(self.api_url)
         response.raise_for_status()  # Skickar ett errormeddelande i fall anropet misslyckas
         data = response.json()
@@ -68,9 +69,8 @@ class AdviceApp:
         conn.commit()
 
         cursor.execute('SELECT id FROM advice WHERE advice_id = ?', (advice_id,))
-        row_id: int = cursor.fetchone()[0]  # Get the row ID of the inserted or existing advice
+        row_id: int = cursor.fetchone()[0]  # Hämtar det interna ID:t för raden
         conn.close()
-        #print("Advice has been saved to the database if it was not already present.")
         return row_id
 
     def add_advice_manually(self, advice_text: str) -> None:
@@ -86,7 +86,7 @@ class AdviceApp:
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        date_added: str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        date_added: str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute(
             "INSERT INTO advice (advice_id, advice_text, date_added) VALUES (?, ?, ?)",
             (None, advice_text.strip(), date_added)
@@ -112,16 +112,22 @@ class AdviceApp:
 
         if rows:
             print("All the saved wise advice:")
+            valid_ids = []
             for row in rows:
                 print(f"\t{row[0]}. Added on {row[2]}: {row[1]}")
+                valid_ids.append(row[0])  #Lägger till ID i listan
+            return valid_ids  #Returnerar listan med ID:n
 
         else:
             print("You have nothing saved yet")
 
     def delete_advice(self) -> None:
         """
-        Visar alla råd först och låter användaren välja id för att radera.
-        Felhantering vid ogiltig inmatning.
+        Raderar ett visdomsord baserat på användarens valda ID.
+        Funktion:
+            Visar alla sparade råd med ID, ber användaren ange ett ID att radera.
+            Kontrollerar att ID:t är giltigt innan radering.
+            Uppdaterar nummerordningen på råd efter radering.
         """
 
         # Skriv ut alla sparade råd med respektive ID
@@ -147,7 +153,44 @@ class AdviceApp:
             conn.commit()
             conn.close()
             print(f" Advice with ID {advice_id} has been deleted.")
+            self.resequence_advice_ids()  # Uppdatera nummerordningen på råd
             break
+
+    def resequence_advice_ids(self) -> None:
+        """
+        Uppdaterar nummerordningen på sparade råd så att första rådet = 1, andra = 2 osv.
+        Funktion:
+            Hämtar alla råd sorterade på id, raderar tabellen, och skriver tillbaka dem
+            med sekventiella id:n som börjar på 1.
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Hämta alla råd sorterade på id
+        cursor.execute("SELECT advice_id, advice_text, date_added FROM advice ORDER BY id ASC")
+        rows = cursor.fetchall()
+
+        # Temporärt behåll alla råd
+        temp_advice = [(advice_id, advice_text, date_added) for advice_id, advice_text, date_added in rows]
+
+        # Radera allt i tabellen
+        cursor.execute("DELETE FROM advice")
+        conn.commit()
+
+        # Reset autoincrement i SQLite (så att id börjar på 1)
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name='advice'")
+        conn.commit()
+
+        # Skriv tillbaka alla råd
+        for advice in temp_advice:
+            advice_id, advice_text, date_added = advice
+            cursor.execute(
+                "INSERT INTO advice (advice_id, advice_text, date_added) VALUES (?, ?, ?)",
+                (advice_id, advice_text, date_added)
+            )
+        conn.commit()
+        conn.close()
+        print("All advice IDs have been resequenced starting from 1.")
 
     def random_advice_from_db(self) -> None:
         """
@@ -180,7 +223,7 @@ class AdviceApp:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT advice_id, advice_text FROM advice WHERE advice_text LIKE ?",
-            ('%' + keyword + '%',)
+            ('%' + keyword + '%',)      #Lägger till % wildcard före och efter keyword för att matcha var som helst i texten
         )
         rows: list[tuple[int, str]] = cursor.fetchall()
         conn.close()

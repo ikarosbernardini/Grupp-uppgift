@@ -4,7 +4,7 @@ def menu() -> None:
     while True:
         print("\n=== Menu ===")
         print("1. Get new advice from API")
-        print("2. Add your own advice")
+        print("2. Add your own advice")             
         print("3. Print all saved advices")
         print("4. Search for saved advice")
         print("5. Show a random saved advice")
@@ -18,7 +18,8 @@ def menu() -> None:
             if choice == 1:
                 API_advice.get_advice()
             elif choice == 2:
-                API_advice.add_advice_manually()
+                text: str = input('Write your advice: ').strip()
+                API_advice.add_advice_manually(text)
             elif choice == 3:
                 API_advice.show_all_advice()
             elif choice == 4:
@@ -36,11 +37,13 @@ def menu() -> None:
         except ValueError:
             print("Invalid input, please enter a number between 1 and 7.")
         
-        sleep(1)  # Pausar en sekund innan menyn visas igen
+        input("\nPress Enter to continue...")
+
 
         
 
 
 if __name__ == "__main__":
     API_advice = AdviceApp()
+    API_advice.resequence_advice_ids()
     menu()
